@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 
@@ -34,6 +35,21 @@ class MainActivity : Activity() {
         status = TextView(this).apply {
             textSize = 16f
             setPadding(0, pad / 2, 0, pad / 2)
+        }
+
+        val toggle = Switch(this).apply {
+            text = "Otomatik ekran kapatma"
+            textSize = 18f
+            isChecked = prefs().getBoolean(SleepService.KEY_ENABLED, true)
+            setPadding(0, pad / 2, 0, pad / 2)
+            setOnCheckedChangeListener { _, checked ->
+                prefs().edit().putBoolean(SleepService.KEY_ENABLED, checked).apply()
+                Toast.makeText(
+                    this@MainActivity,
+                    if (checked) "Açıldı" else "Kapatıldı",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
 
         val label = TextView(this).apply {
@@ -77,13 +93,13 @@ class MainActivity : Activity() {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
-        listOf(title, status, label, input, save, open, help).forEach { root.addView(it, lp) }
+        listOf(title, status, toggle, label, input, save, open, help).forEach { root.addView(it, lp) }
         setContentView(root)
     }
 
     override fun onResume() {
         super.onResume()
-        status.text = if (isServiceEnabled()) "Durum: AÇIK ✅" else "Durum: KAPALI ❌ (hizmeti açın)"
+        status.text = if (isServiceEnabled()) "Hizmet: AÇIK ✅" else "Hizmet: KAPALI ❌ (hizmeti açın)"
     }
 
     private fun prefs() = getSharedPreferences(SleepService.PREFS, MODE_PRIVATE)
