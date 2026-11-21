@@ -56,22 +56,26 @@ class SleepService : AccessibilityService() {
         super.onDestroy()
     }
 
+    private fun prefs() = getSharedPreferences(PREFS, MODE_PRIVATE)
+
+    private fun isEnabled() = prefs().getBoolean(KEY_ENABLED, true)
+
     private fun timeoutMillis(): Long {
-        val seconds = getSharedPreferences(PREFS, MODE_PRIVATE).getInt(KEY_SECONDS, DEFAULT_SECONDS)
+        val seconds = prefs().getInt(KEY_SECONDS, DEFAULT_SECONDS)
         return seconds.coerceAtLeast(5) * 1000L
     }
 
     private fun restartTimer() {
         handler.removeCallbacks(lockRunnable)
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-        if (pm.isInteractive) {
+        if (isEnabled() && pm.isInteractive) {
             handler.postDelayed(lockRunnable, timeoutMillis())
         }
     }
 
     private fun lockIfIdle() {
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-        if (pm.isInteractive) {
+        if (isEnabled() && pm.isInteractive) {
             performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
         }
     }
@@ -79,6 +83,7 @@ class SleepService : AccessibilityService() {
     companion object {
         const val PREFS = "autosleep"
         const val KEY_SECONDS = "seconds"
+        const val KEY_ENABLED = "enabled"
         const val DEFAULT_SECONDS = 60
     }
 }
